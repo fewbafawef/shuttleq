@@ -6,6 +6,8 @@
 * allow admin to edit the courts configuration
 * send realtime stuff from the config thingy to the screen thingy.
 * ✨animations✨
+
+
 Django sucks. Flask forever 🦅🦅🦅🇺🇸🇺🇸🇺🇸
 > Written with [StackEdit](https://stackedit.io/).
 > 
