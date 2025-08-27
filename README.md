@@ -1,9 +1,7 @@
 ﻿# ShuttleQ
 ## This is a school project. It's not very nice i think.
 # Stuff to do
-* create a center admin login thing
-* list the courts under the admin
-* allow admin to edit the courts configuration
+* add settings
 * send realtime stuff from the config thingy to the screen thingy.
 * ✨animations✨
 
