@@ -19,6 +19,8 @@ Django sucks. Flask forever 🦅🦅🦅🇺🇸🇺🇸🇺🇸
 
 © 2025. All rights reserved.
 
-This code and its underlying ideas are currently **private**. You may **not copy, distribute, modify, or use** this code or its concepts in any form without **explicit permission** from the copyright holder. Only the copyright holder may use, modify, or distribute this code or its ideas at this time. 
+This code and its underlying ideas are **private for now**. You may **not copy, distribute, modify, or use** this code or its concepts for **direct commercial or profit-making purposes** without explicit permission from the copyright holder. 
 
-⚠️ Note: This restriction is temporary. The code will be **open-sourced in the future**, at which point it will be available under a separate license.
+Any derivative works or adaptations must be released as **open-source** under a similar license. Only the copyright holder may use, modify, or distribute this code or its ideas for private or commercial purposes at this time. 
+
+⚠️ Note: These restrictions are temporary. The code will be **fully open-sourced in the future**.
