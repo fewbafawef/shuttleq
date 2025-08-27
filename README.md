@@ -4,10 +4,12 @@
 # Stuff done
 * add basic templates
 * make mostly working endpoints
+* theres also a db cleaner but that needs to be run manually.
 
 # Stuff to do
 * add settings
 * send realtime stuff from the config thingy to the screen thingy.
+* make the db cleaner the part of the main app, auto launched basically.
 * ✨animations✨
 
 
