@@ -1,17 +1,277 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="h-100" data-bs-theme="dark">
+
 <head>
-    <meta charset="UTF-8">
-    <title>asdasd</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <title>ShuttleQ</title>
+
+    <link href="/static/bootstrap.min.css" rel="stylesheet" />
+    <meta name="theme-color" content="#712cf9" />
+    <link href="/static/cover.css" rel="stylesheet" />
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .b-example-divider {
+            width: 100%;
+            height: 3rem;
+            background-color: #0000001a;
+            border: solid rgba(0, 0, 0, 0.15);
+            border-width: 1px 0;
+            box-shadow:
+                inset 0 0.5em 1.5em #0000001a,
+                inset 0 0.125em 0.5em #00000026;
+        }
+
+        .b-example-vr {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+        }
+
+        .bi {
+            vertical-align: -0.125em;
+            fill: currentColor;
+        }
+
+        .nav-scroller {
+            position: relative;
+            z-index: 2;
+            height: 2.75rem;
+            overflow-y: hidden;
+        }
+
+        .nav-scroller .nav {
+            display: flex;
+            flex-wrap: nowrap;
+            padding-bottom: 1rem;
+            margin-top: -1px;
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .btn-bd-primary {
+            --bd-violet-bg: #712cf9;
+            --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+            --bs-btn-font-weight: 600;
+            --bs-btn-color: var(--bs-white);
+            --bs-btn-bg: var(--bd-violet-bg);
+            --bs-btn-border-color: var(--bd-violet-bg);
+            --bs-btn-hover-color: var(--bs-white);
+            --bs-btn-hover-bg: #6528e0;
+            --bs-btn-hover-border-color: #6528e0;
+            --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+            --bs-btn-active-color: var(--bs-btn-hover-color);
+            --bs-btn-active-bg: #5a23c8;
+            --bs-btn-active-border-color: #5a23c8;
+        }
+
+        .bd-mode-toggle {
+            z-index: 1500;
+        }
+
+        .bd-mode-toggle .bi {
+            width: 1em;
+            height: 1em;
+        }
+
+        .bd-mode-toggle .dropdown-menu .active .bi {
+            display: block !important;
+        }
+
+        main.px-3 {
+            transition: opacity 0.3s ease-in-out;
+            /* 0.3 seconds is a good fade speed */
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+        }
+
+        .fade-in {
+            opacity: 1 !important;
+        }
+    </style>
 </head>
-<body>
-<h1>this is the admin page for the room with id {{id}}</h1>
-<p>your password is {{passe}}, dont lose it else you lose the admin access</p>
 
-<p>link for the players "/{{id}}"</p>
-<p>link to open on a display "/{{id}}/display"</p>
+<body class="d-flex h-100 text-bg-dark">
 
+    <div class="container d-flex w-100 h-100 p-3 mx-auto flex-column">
+        <!-- headr -->
+
+        <header class="mb-auto">
+            <div>
+                <h3 class="float-md-start mb-0">ShuttleQ</h3>
+                <nav class="nav nav-masthead justify-content-center float-md-end">
+                    <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="#"
+                        onclick="showSection('urls', this)">URLs</a>
+                    <a class="nav-link fw-bold py-1 px-0" href="#" onclick="showSection('sets', this)">Settings</a>
+                    <a class="nav-link fw-bold py-1 px-0" href="#" onclick="showSection('psets', this)">Player
+                        Settings</a>
+                    <a class="nav-link fw-bold py-1 px-0" href="#" onclick="showSection('dsets', this)">Display
+                        Settings</a>
+                    <a class="nav-link fw-bold py-1 px-0" href="#" onclick="showSection('contr', this)">Game
+                        Controls</a>
+                </nav>
+            </div>
+        </header>
+
+
+        <!-- lotta mains -->
+
+
+        <main class="px-3" id="urls">
+            <h1 class="text-body-emphasis">URLs</h1>
+
+            <div class="mb-3">
+                <label for="basic-url" class="form-label">Admin URL</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" value="{{admin_url}}" aria-label="Disabled input example"
+                        disabled readonly id="admin-url">
+                    <button class="btn btn-outline-secondary" type="button"
+                        onclick="copyToClipboard('admin-url')">Copy</button>
+                </div>
+                <div class="form-text" id="basic-addon4">This is your administration URL, don't lose it!</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="basic-url" class="form-label">Players URL</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" value="{{player_url}}" aria-label="Disabled input example"
+                        disabled readonly id="player-url">
+                    <button class="btn btn-outline-secondary" type="button"
+                        onclick="copyToClipboard('player-url')">Copy</button>
+                </div>
+                <div class="form-text" id="basic-addon4">This is the URL you share with the players.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="basic-url" class="form-label">Display URL</label>
+                <div class="input-group">
+                    <input class="form-control" type="text" value="{{display_url}}" aria-label="Disabled input example"
+                        disabled readonly id="display-url" This is a single-line HTML comment.>
+                    <button class="btn btn-outline-secondary" type="button"
+                        onclick="copyToClipboard('display-url')">Copy</button>
+                </div>
+                <div class="form-text" id="basic-addon4">This is the URL which you open on a screen.</div>
+            </div>
+
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div class="toast align-items-center text-bg-secondary border-0" role="alert" aria-live="assertive"
+                    aria-atomic="true" id="cpytoast">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            URL copied successfully!
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <main class="px-3 d-none fade-out" id="sets">
+            <h1 class="text-body-emphasis">Settings</h1>
+
+        </main>
+
+        <main class="px-3 d-none fade-out" id="psets">
+            <h1 class="text-body-emphasis">Player Settings</h1>
+
+        </main>
+
+        <main class="px-3 d-none fade-out" id="dsets">
+            <h1 class="text-body-emphasis">Display Settings</h1>
+
+        </main>
+
+        <main class="px-3 d-none fade-out" id="contr">
+            <h1 class="text-body-emphasis">Game Controls</h1>
+
+        </main>
+
+
+        <footer class="mt-auto text-white-50">
+            <p>
+                ShuttleQ
+            </p>
+        </footer>
+
+        <script>
+            function copyToClipboard(id) {
+                const toast = new bootstrap.Toast(document.getElementById("cpytoast"));
+                const input = document.getElementById(id);
+                input.select();
+                input.setSelectionRange(0, 99999);
+                navigator.clipboard.writeText(input.value);
+                toast.show();
+            }
+        </script>
+
+        <script>
+            function showSection(sectionId, clickedElement) {
+                const targetSection = document.getElementById(sectionId);
+                const currentSection = document.querySelector('main.px-3:not(.d-none)');
+
+                const allNavLinks = document.querySelectorAll('.nav-masthead .nav-link');
+                allNavLinks.forEach(link => {
+                    link.classList.remove('active');
+                    link.removeAttribute('aria-current');
+                });
+
+                if (clickedElement) {
+                    clickedElement.classList.add('active');
+                    clickedElement.setAttribute('aria-current', 'page');
+                }
+
+                if (currentSection && currentSection.id === sectionId) {
+                    return;
+                }
+
+                const fadeOutCompleteHandler = (event) => {
+                    if (event.propertyName !== 'opacity') return;
+
+                    currentSection.classList.add('d-none');
+                    currentSection.removeEventListener('transitionend', fadeOutCompleteHandler);
+
+                    if (targetSection) {
+                        targetSection.classList.remove('d-none');
+                        targetSection.classList.add('fade-out');
+
+                        void targetSection.offsetWidth;
+
+                        targetSection.classList.remove('fade-out');
+                        targetSection.classList.add('fade-in');
+                    }
+                };
+
+                if (currentSection) {
+                    currentSection.addEventListener('transitionend', fadeOutCompleteHandler);
+                    currentSection.classList.remove('fade-in');
+                    currentSection.classList.add('fade-out');
+                } else if (targetSection) {
+                    targetSection.classList.remove('d-none', 'fade-out');
+                    targetSection.classList.add('fade-in');
+                }
+            }
+        </script>
+    </div>
+    <script src="/static/bootstrap.bundle.min.js" class="astro-vvvwv3sm"></script>
 </body>
+
 </html>
-
-

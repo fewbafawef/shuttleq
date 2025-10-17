@@ -10,11 +10,14 @@ class PlaySession(BaseModel):
     uid = IntegerField(unique=True)
     adminpassword = CharField()
 
-    accesspassword = CharField(null=True)
+    editaccesspassword = CharField(null=True)
+    viewaccesspassword = CharField(null=True)
 
     displayname = TextField(null=True)
     sessionsettings = TextField(null=True)
     playersettings = TextField(null=True)
     displaysettings = TextField(null=True)
-    
+
+    gameinfo = TextField(null=True)
+
     sessionexpiry = BigIntegerField()

@@ -6,26 +6,38 @@ import random
 import secrets
 import string
 from models import PlaySession, db
+from flask_socketio import SocketIO, ConnectionRefusedError, join_room, leave_room
 
 #app config stuff
 app = Flask(__name__, static_url_path='/static', static_folder='./static', template_folder='./templates')
 app.secret_key = "supersecretkey"
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_PERMANENT"] = True
-Session(app)
+socketio = SocketIO(app)
 alphabet = string.ascii_letters + string.digits
 
 #database 
 db.connect()
 db.create_tables([PlaySession])
-
-#In-memory set of active UIDs this helps to check if the randomly generated thing exists.
 active_sessions = list()
 for s in PlaySession.select():
     if s.sessionexpiry > time.time():
         active_sessions.append(s.uid)
 
-#generic home page
+#+++++++++++++++++++++++ HELPER STUFF +++++++++++++++++++++++++++++++
+
+def parseRoomID(roomid):
+    if not (roomid.isdigit() and len(roomid)==8):
+        return None
+    return int(roomid)
+
+def generateErrorPage(title, msg):
+    return render_template("errormessage.html", error=title, message=msg), 400
+
+def getRoom(**kwargs):
+    return PlaySession.get_or_none(**kwargs)
+
+
+#++++++++++++++++++++++++ MAIN CODE +++++++++++++++++++++++++++++++
+
 @app.route('/')
 def landing():
     return render_template("home.html", newlink=url_for("mknewsession"))
@@ -44,57 +56,89 @@ def mknewsession():
         active_sessions.append(uid)
         return redirect(url_for("roomadmin", roomid=str(uid).zfill(8), passphrase=password))
     except:
-        return render_template("errormessage.html", error="Room could not be created", message="A room could not be created for you, negative aura ---")
+        return generateErrorPage("Room could not be created", "A room could not be created for you, negative aura ---")
 
+
+#admin page
+@app.route('/<roomid>/<passphrase>', methods=['GET', 'POST'])
+def roomadmin(roomid, passphrase):
+    roomid = parseRoomID(roomid)
+    if not roomid:
+        return generateErrorPage("invalid room id", "room id is invalid")
+
+    if not getRoom(uid=roomid, adminpassword=passphrase):
+        if request.method == 'POST':
+            return {"message": "failed"}
+        else:
+            return generateErrorPage("Could not get room", "we could not get your room, maybe the id is wrong.")
+
+    if request.method == 'POST':
+        return {"message": "success"}
+    else:
+        roomid=str(roomid).zfill(8)
+        admin_url = url_for('roomadmin', roomid=roomid, passphrase=passphrase, _external=True)
+        player_url = url_for('roombase', roomid=roomid, _external=True)
+        display_url = url_for('roomdisplay', roomid=roomid, _external=True)
+        return render_template("admin.html", admin_url=admin_url, player_url=player_url, display_url=display_url)
+
+#players
 @app.route('/<roomid>', methods=['GET','POST'])
 def roombase(roomid):
-    if not (roomid.isdigit() and len(roomid)==8):
-        return "invalid room id"
-    roomid = int(roomid)
+    roomid = parseRoomID(roomid)
+    if not roomid:
+        return generateErrorPage("invalid room id", "room id is invalid")
 
-    playsession = PlaySession.get_or_none(PlaySession.uid == roomid)
-
-    if not playsession:
+    if not getRoom(uid=roomid):
         if request.method == 'POST':
             return 'post faield caued room no there'
-        return render_template("errormessage.html", error="Could not get room", message="We could not get your room, maybe cause the id is wrong.")
+        return generateErrorPage("Could not get room", "We could not get your room, maybe cause the id is wrong.")
 
     if request.method == 'POST':
         return 'this is post success.'
             
     return render_template("player.html", id=roomid)
 
-@app.route('/<roomid>/<passphrase>', methods=['GET', 'POST'])
-def roomadmin(roomid, passphrase):
-    if not (roomid.isdigit() and len(roomid)==8):
-        return "invalid room id"
-    roomid = int(roomid)
-
-    playsession = PlaySession.get_or_none((PlaySession.uid == roomid) & (PlaySession.adminpassword == passphrase))
-
-    if not playsession:
-        if request.method == 'POST':
-            return 'post faield caued room no there or password wrong'
-        return render_template("errormessage.html", error="Could not get room", message="we could not get your room, maybe the id is wrong.")
-
-    if request.method == 'POST':
-        return 'this is post success.'
-
-    return render_template("admin.html", id=roomid, passe=passphrase)
-
-
+#display
 @app.route('/<roomid>/display')
 def roomdisplay(roomid):
-    if not (roomid.isdigit() and len(roomid)==8):
-        return "invalid room id"
-    roomid = int(roomid)
+    roomid = parseRoomID(roomid)
+    if not roomid:
+        return generateErrorPage("Invalid Room ID Format", "The Room ID you provided is not a valid 8-digit number. Please check again.")
 
-    playsession = PlaySession.get_or_none(PlaySession.uid == roomid)
-
-    if not playsession:
-        return render_template("errormessage.html", error="couldnt get room", message="the room could not be found, is the id right?")
+    if not getRoom(uid=roomid):
+        return generateErrorPage("Room Not Found", "We couldn't find a session for that ID. Please check that you entered the 8-digit Room ID correctly, or that the session hasn't expired.")
 
     return render_template("display.html", id=roomid)
 
+#++++++++++++++++++++++++++++++ SOCKETS FOR REAL TIME THINGY +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+@socketio.on('connect')
+def on_connect(auth):
+    if auth and "authpass" in auth and "room" in auth and "type" in auth:
+        authpass = auth["authpass"]
+        roomid = auth["room"]
+
+        if not (roomid.isdigit() and len(roomid)==8):
+            raise ConnectionRefusedError("invalid roomid or view access password")
+        roomid = int(roomid)
+
+        if auth["type"]=="display":
+            playsession = PlaySession.get_or_none(PlaySession.uid == roomid, PlaySession.viewaccesspassword == authpass)
+            if not playsession:
+                raise ConnectionRefusedError("invalid roomid or view access password")
+            else:
+                join_room(str(roomid)+"DISPLAY")
+
+        if auth["type"]=="player":
+            playsession = PlaySession.get_or_none(PlaySession.uid == roomid, PlaySession.editaccesspassword == authpass)
+            if not playsession:
+                raise ConnectionRefusedError("invalid roomid or view access password")
+            else:
+                join_room(str(roomid)+"EDITOR")
+    else:
+        raise ConnectionRefusedError("unauthorized!")
+
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
