@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_session import Session
 import json
 import time
 import random
@@ -114,27 +113,15 @@ def roomdisplay(roomid):
 
 @socketio.on('connect')
 def on_connect(auth):
+    print(auth)
     if auth and "authpass" in auth and "room" in auth and "type" in auth:
-        authpass = auth["authpass"]
-        roomid = auth["room"]
 
-        if not (roomid.isdigit() and len(roomid)==8):
-            raise ConnectionRefusedError("invalid roomid or view access password")
-        roomid = int(roomid)
+        roomid = parseRoomID(auth['room'])
 
-        if auth["type"]=="display":
-            playsession = PlaySession.get_or_none(PlaySession.uid == roomid, PlaySession.viewaccesspassword == authpass)
-            if not playsession:
-                raise ConnectionRefusedError("invalid roomid or view access password")
-            else:
-                join_room(str(roomid)+"DISPLAY")
+        if not roomid:
+            raise ConnectionRefusedError("unauthorized!")
 
-        if auth["type"]=="player":
-            playsession = PlaySession.get_or_none(PlaySession.uid == roomid, PlaySession.editaccesspassword == authpass)
-            if not playsession:
-                raise ConnectionRefusedError("invalid roomid or view access password")
-            else:
-                join_room(str(roomid)+"EDITOR")
+        print(auth['authpass'], room, auth['type'])
     else:
         raise ConnectionRefusedError("unauthorized!")
 
