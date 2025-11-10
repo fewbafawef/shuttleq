@@ -5,7 +5,7 @@ import random
 import secrets
 import string
 from models import PlaySession, db
-from flask_socketio import SocketIO, ConnectionRefusedError, join_room, leave_room
+from flask_socketio import SocketIO, ConnectionRefusedError, join_room, leave_room, current_user
 
 #app config stuff
 app = Flask(__name__, static_url_path='/static', static_folder='./static', template_folder='./templates')
@@ -78,7 +78,7 @@ def roomadmin(roomid, passphrase):
         admin_url = url_for('roomadmin', roomid=roomid, passphrase=passphrase, _external=True)
         player_url = url_for('roombase', roomid=roomid, _external=True)
         display_url = url_for('roomdisplay', roomid=roomid, _external=True)
-        return render_template("admin.html", admin_url=admin_url, player_url=player_url, display_url=display_url)
+        return render_template("admin.html", admin_url=admin_url, player_url=player_url, display_url=display_url, roomid=roomid, passphrase=passphrase)
 
 #players
 @app.route('/<roomid>', methods=['GET','POST'])
@@ -121,11 +121,24 @@ def on_connect(auth):
         if not roomid:
             raise ConnectionRefusedError("unauthorized!")
 
-        print(auth['authpass'], room, auth['type'])
+        print(auth['authpass'], roomid, auth['type'])
     else:
         raise ConnectionRefusedError("unauthorized!")
 
-
+@socketio.on('connect')
+def on_connect(auth):
+    print(auth)
+    if auth and "authpass" in auth and "room" in auth and "type" in auth:
+        roomid = parseRoomID(auth['room'])
+        if not roomid:
+            raise ConnectionRefusedError("unauthorized!")
+        join_room(roomid) 
+        current_user.data['role'] = auth['type'] 
+        current_user.data['room_id'] = roomid
+        print(f"User connected! Role: {current_user.data['role']}, Room: {current_user.data['room_id']}")
+        
+    else:
+        raise ConnectionRefusedError("unauthorized!")
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

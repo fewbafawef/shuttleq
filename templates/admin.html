@@ -224,25 +224,32 @@
         </script>
 
         <script>
+            let isTransitioning = false;
+
             function showSection(sectionId, clickedElement) {
+                if (isTransitioning) {
+                    return;
+                }
                 const targetSection = document.getElementById(sectionId);
                 const currentSection = document.querySelector('main.px-3:not(.d-none)');
-
                 const allNavLinks = document.querySelectorAll('.nav-masthead .nav-link');
                 allNavLinks.forEach(link => {
                     link.classList.remove('active');
                     link.removeAttribute('aria-current');
                 });
-
                 if (clickedElement) {
                     clickedElement.classList.add('active');
                     clickedElement.setAttribute('aria-current', 'page');
                 }
-
                 if (currentSection && currentSection.id === sectionId) {
                     return;
                 }
-
+                isTransitioning = true;
+                const fadeInCompleteHandler = (event) => {
+                    if (event.propertyName !== 'opacity') return;
+                    targetSection.removeEventListener('transitionend', fadeInCompleteHandler);
+                    isTransitioning = false;
+                };
                 const fadeOutCompleteHandler = (event) => {
                     if (event.propertyName !== 'opacity') return;
 
@@ -252,11 +259,14 @@
                     if (targetSection) {
                         targetSection.classList.remove('d-none');
                         targetSection.classList.add('fade-out');
+                        targetSection.addEventListener('transitionend', fadeInCompleteHandler);
 
                         void targetSection.offsetWidth;
 
                         targetSection.classList.remove('fade-out');
                         targetSection.classList.add('fade-in');
+                    } else {
+                        isTransitioning = false;
                     }
                 };
 
@@ -265,8 +275,11 @@
                     currentSection.classList.remove('fade-in');
                     currentSection.classList.add('fade-out');
                 } else if (targetSection) {
+                    targetSection.addEventListener('transitionend', fadeInCompleteHandler);
                     targetSection.classList.remove('d-none', 'fade-out');
                     targetSection.classList.add('fade-in');
+                } else {
+                    isTransitioning = false;
                 }
             }
         </script>
@@ -276,8 +289,8 @@
     <script type="text/javascript" charset="utf-8">
         var socket = io({
             auth: {
-                "authpass":"",
-                "room":"",
+                "authpass":"{{passphrase}}",
+                "room":"{{roomid}}",
                 "type":"admin"
             }
         });
